@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/murf-speech",
+  "version": "2026.4.4",
+  "private": true,
+  "description": "OpenClaw Murf Falcon speech plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

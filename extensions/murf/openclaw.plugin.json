@@ -1,0 +1,11 @@
+{
+  "id": "murf",
+  "contracts": {
+    "speechProviders": ["murf"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

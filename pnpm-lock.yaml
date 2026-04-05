@@ -391,6 +391,8 @@ importers:
 
   extensions/firecrawl: {}
 
+  extensions/fireworks: {}
+
   extensions/github-copilot: {}
 
   extensions/google: {}
@@ -529,6 +531,8 @@ importers:
       openclaw:
         specifier: workspace:*
         version: link:../..
+
+  extensions/murf: {}
 
   extensions/nextcloud-talk:
     devDependencies:
