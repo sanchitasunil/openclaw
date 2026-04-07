@@ -290,6 +290,11 @@
   - changed-files:
       - any-glob-to-any-file:
           - "extensions/moonshot/**"
+"extensions: murf":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "extensions/murf/**"
+          - "skills/murf-tts/**"
 "extensions: nvidia":
   - changed-files:
       - any-glob-to-any-file:

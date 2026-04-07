@@ -1,11 +1,31 @@
 import {
+  asObject,
   readResponseTextLimited,
   requireInRange,
   trimToUndefined,
   truncateErrorDetail,
 } from "openclaw/plugin-sdk/speech";
 
-const MURF_REGIONS = new Set(["global", "in", "us-east"]);
+/** Subdomain for `https://<id>.api.murf.ai` (see Murf Stream Speech API regional URLs). */
+export const MURF_API_REGIONS = [
+  "au",
+  "ca",
+  "eu-central",
+  "global",
+  "in",
+  "jp",
+  "kr",
+  "me",
+  "sa-east",
+  "uk",
+  "us-east",
+  "us-west",
+] as const;
+
+const MURF_REGIONS = new Set<string>(MURF_API_REGIONS);
+
+const MURF_MODELS = new Set(["FALCON", "GEN2"]);
+
 const MURF_FORMATS = new Set(["MP3", "WAV", "OGG", "FLAC"]);
 const MURF_SAMPLE_RATES = new Set([8000, 16000, 24000, 44100, 48000]);
 const MURF_MAX_TEXT_LENGTH = 5000;
@@ -35,12 +55,62 @@ function isRetryableStatus(status: number): boolean {
   return status === 429 || (status >= 500 && status < 600);
 }
 
+/**
+ * Parse a structured Murf API error payload, extracting the most useful
+ * human-readable detail string. Mirrors ElevenLabs' JSON error parsing.
+ */
+export function formatMurfErrorPayload(payload: unknown): string | undefined {
+  const root = asObject(payload);
+  if (!root) {
+    return undefined;
+  }
+  const detailObject = asObject(root.detail);
+  const message =
+    trimToUndefined(root.message) ??
+    trimToUndefined(detailObject?.message) ??
+    trimToUndefined(detailObject?.detail) ??
+    trimToUndefined(root.error);
+  const code =
+    trimToUndefined(root.code) ??
+    trimToUndefined(detailObject?.code) ??
+    trimToUndefined(detailObject?.status);
+  if (message && code) {
+    return `${truncateErrorDetail(message)} [code=${code}]`;
+  }
+  if (message) {
+    return truncateErrorDetail(message);
+  }
+  if (code) {
+    return `[code=${code}]`;
+  }
+  return undefined;
+}
+
+/**
+ * Extract a human-readable error detail from a Murf API error response.
+ * Attempts JSON parsing first; falls back to raw body text.
+ */
 async function extractMurfErrorDetail(response: Response): Promise<string | undefined> {
   const rawBody = trimToUndefined(await readResponseTextLimited(response));
   if (!rawBody) {
     return undefined;
   }
-  return truncateErrorDetail(rawBody);
+  try {
+    return formatMurfErrorPayload(JSON.parse(rawBody)) ?? truncateErrorDetail(rawBody);
+  } catch {
+    return truncateErrorDetail(rawBody);
+  }
+}
+
+/**
+ * Extract a request/trace ID from Murf API response headers, if present.
+ * Useful for support tickets and debugging.
+ */
+function extractMurfRequestId(response: Response): string | undefined {
+  return (
+    trimToUndefined(response.headers.get("x-request-id")) ??
+    trimToUndefined(response.headers.get("request-id"))
+  );
 }
 
 export type MurfTtsParams = {
@@ -74,6 +144,11 @@ export async function murfTTS(params: MurfTtsParams): Promise<Buffer> {
     timeoutMs,
   } = params;
 
+  const modelNorm = model.trim().toUpperCase();
+  if (!MURF_MODELS.has(modelNorm)) {
+    throw new Error(`Murf TTS: unsupported model "${model}" (expected FALCON or GEN2)`);
+  }
+
   const text = stripControlChars(params.text).trim();
   if (!text) {
     throw new Error("Murf TTS: text must not be empty");
@@ -99,7 +174,7 @@ export async function murfTTS(params: MurfTtsParams): Promise<Buffer> {
   const body = JSON.stringify({
     text,
     voiceId,
-    model,
+    model: modelNorm,
     format,
     locale,
     style,
@@ -137,12 +212,20 @@ export async function murfTTS(params: MurfTtsParams): Promise<Buffer> {
       // Non-retryable client errors (400/401/402/403) — throw immediately.
       if (!isRetryableStatus(response.status)) {
         const detail = await extractMurfErrorDetail(response);
-        throw new Error(`Murf TTS API error (${response.status})` + (detail ? `: ${detail}` : ""));
+        const requestId = extractMurfRequestId(response);
+        throw new Error(
+          `Murf TTS API error (${response.status})` +
+            (detail ? `: ${detail}` : "") +
+            (requestId ? ` [request_id=${requestId}]` : ""),
+        );
       }
 
       const detail = await extractMurfErrorDetail(response);
+      const requestId = extractMurfRequestId(response);
       lastError = new Error(
-        `Murf TTS API error (${response.status})` + (detail ? `: ${detail}` : ""),
+        `Murf TTS API error (${response.status})` +
+          (detail ? `: ${detail}` : "") +
+          (requestId ? ` [request_id=${requestId}]` : ""),
       );
     } catch (err) {
       // Abort / network errors are not retried here.

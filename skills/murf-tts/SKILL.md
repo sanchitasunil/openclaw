@@ -1,6 +1,6 @@
 ---
 name: murf-tts
-description: High-quality TTS via Murf Falcon (cloud, streaming)
+description: High-quality TTS via Murf (FALCON / GEN2, cloud streaming)
 metadata:
   {
     "openclaw":
@@ -14,7 +14,7 @@ metadata:
 
 # murf-tts
 
-Cloud text-to-speech using the Murf Falcon model. Produces high-quality, natural-sounding audio in multiple voices, styles, and locales.
+Cloud text-to-speech using Murf (FALCON for low latency, GEN2 for studio-quality). Produces natural-sounding audio in multiple voices, styles, and locales.
 
 ## Setup
 
@@ -41,7 +41,7 @@ Or add to `~/.openclaw/config.json`:
       murf: {
         voiceId: "en-US-natalie", // or "Matthew", etc.
         model: "FALCON",
-        region: "global", // "global", "in", "us-east"
+        region: "global", // see region list below
         locale: "en-US",
         style: "Conversation", // "Conversation", "Newscast", etc.
         format: "MP3",
@@ -60,27 +60,31 @@ openclaw gateway restart
 
 ## Usage
 
-Once configured, TTS output automatically uses Murf Falcon:
+Once configured, TTS output automatically uses Murf:
 
 ```bash
-openclaw tts "Hello from Falcon"
+openclaw tts "Hello from Murf"
 ```
 
 The agent will use Murf for all voice output. If Murf is unavailable, OpenClaw automatically falls back to other configured providers (OpenAI, ElevenLabs, Microsoft Edge).
 
 ## Voice Options
 
-| Parameter  | Values                           | Default       |
-| ---------- | -------------------------------- | ------------- |
-| voiceId    | "en-US-natalie", "Matthew", etc. | en-US-natalie |
-| model      | "FALCON", "GEN2"                 | FALCON        |
-| locale     | "en-US", "en-UK", "es-ES", etc.  | en-US         |
-| style      | "Conversation", "Newscast", etc. | Conversation  |
-| rate       | -50 to 50                        | 0             |
-| pitch      | -50 to 50                        | 0             |
-| region     | "global", "in", "us-east"        | global        |
-| format     | "MP3", "WAV", "OGG", "FLAC"      | MP3           |
-| sampleRate | 8000, 16000, 24000, 44100, 48000 | 24000         |
+| Parameter  | Values                           | Default                                 |
+| ---------- | -------------------------------- | --------------------------------------- |
+| voiceId    | "en-US-natalie", "Matthew", etc. | en-US-natalie                           |
+| model      | "FALCON", "GEN2"                 | FALCON                                  |
+| locale     | "en-US", "en-UK", "es-ES", etc.  | en-US                                   |
+| style      | "Conversation", "Newscast", etc. | Conversation                            |
+| rate       | -50 to 50                        | 0                                       |
+| pitch      | -50 to 50                        | 0                                       |
+| region     | Murf API region ids (see below)  | global                                  |
+| format     | "MP3", "WAV", "OGG", "FLAC"      | MP3                                     |
+| sampleRate | 8000, 16000, 24000, 44100, 48000 | 24000 (FALCON), 44100 (GEN2) if omitted |
+
+### Regions (`messages.tts` / `providers.murf.region`)
+
+Pinned regional hosts match the Murf API: `au`, `ca`, `eu-central`, `global`, `in`, `jp`, `kr`, `me`, `sa-east`, `uk`, `us-east`, `us-west`. Unknown values fall back to `global`.
 
 ## MCP Fallback
 
