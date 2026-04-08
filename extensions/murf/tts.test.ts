@@ -295,6 +295,18 @@ describe("formatMurfErrorPayload", () => {
     );
   });
 
+  it("extracts error_message and error_code from Murf API error shape", () => {
+    expect(
+      formatMurfErrorPayload({ error_message: "Internal server error", error_code: 500 }),
+    ).toBe("Internal server error [code=500]");
+  });
+
+  it("prefers error_message over message", () => {
+    expect(
+      formatMurfErrorPayload({ error_message: "specific", message: "generic", error_code: 400 }),
+    ).toBe("specific [code=400]");
+  });
+
   it("extracts message from nested detail object", () => {
     expect(
       formatMurfErrorPayload({ detail: { message: "Quota exceeded", status: "quota_exceeded" } }),

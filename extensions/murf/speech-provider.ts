@@ -368,12 +368,13 @@ export function buildMurfSpeechProvider(): SpeechProviderPlugin {
 
       // Telegram/WhatsApp voice bubbles expect Opus/OGG; fall back to OGG
       // so the audio is playable as a native voice note.
+      // FALCON does not support OGG — use MP3 which Telegram also accepts.
       const isVoiceNote = req.target === "voice-note";
       const requestedFormat = normalizeFormat(overrides.format) ?? config.format;
-      const format = isVoiceNote ? "OGG" : requestedFormat;
-
       const modelOverride = trimToUndefined(overrides.model);
       const effectiveModel = normalizeMurfModelField(modelOverride ?? config.model);
+      const voiceNoteFormat = effectiveModel === "FALCON" ? "MP3" : "OGG";
+      const format = isVoiceNote ? voiceNoteFormat : requestedFormat;
 
       const audioBuffer = await murfTTS({
         text: req.text,

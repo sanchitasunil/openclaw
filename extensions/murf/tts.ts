@@ -66,14 +66,16 @@ export function formatMurfErrorPayload(payload: unknown): string | undefined {
   }
   const detailObject = asObject(root.detail);
   const message =
+    trimToUndefined(root.error_message) ??
     trimToUndefined(root.message) ??
     trimToUndefined(detailObject?.message) ??
     trimToUndefined(detailObject?.detail) ??
     trimToUndefined(root.error);
+  const rawCode = root.error_code ?? root.code ?? detailObject?.code ?? detailObject?.status;
   const code =
-    trimToUndefined(root.code) ??
-    trimToUndefined(detailObject?.code) ??
-    trimToUndefined(detailObject?.status);
+    typeof rawCode === "number"
+      ? String(rawCode)
+      : trimToUndefined(rawCode);
   if (message && code) {
     return `${truncateErrorDetail(message)} [code=${code}]`;
   }

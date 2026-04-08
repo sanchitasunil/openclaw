@@ -124,7 +124,7 @@ describe("murf speech provider", () => {
     ).rejects.toThrow("Murf API key missing");
   });
 
-  it("synthesize requests OGG for voice-note targets", async () => {
+  it("synthesize requests MP3 for FALCON voice-note targets", async () => {
     process.env.MURF_API_KEY = "test-key";
     const fetchMock = vi.fn(() =>
       Promise.resolve(new Response(new Uint8Array([1]), { status: 200 })),
@@ -135,7 +135,31 @@ describe("murf speech provider", () => {
     const result = await provider.synthesize({
       text: "Hi",
       cfg: EMPTY_CFG,
-      providerConfig: { format: "MP3" },
+      providerConfig: { format: "MP3", model: "FALCON" },
+      target: "voice-note",
+      timeoutMs: 10_000,
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock access
+    const call = (fetchMock.mock.calls as any[])[0] as [string, RequestInit];
+    const body = JSON.parse(String(call[1]?.body));
+    expect(body.format).toBe("MP3");
+    expect(result.voiceCompatible).toBe(true);
+    expect(result.fileExtension).toBe(".mp3");
+  });
+
+  it("synthesize requests OGG for GEN2 voice-note targets", async () => {
+    process.env.MURF_API_KEY = "test-key";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(new Uint8Array([1]), { status: 200 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = buildMurfSpeechProvider();
+    const result = await provider.synthesize({
+      text: "Hi",
+      cfg: EMPTY_CFG,
+      providerConfig: { format: "MP3", model: "GEN2" },
       target: "voice-note",
       timeoutMs: 10_000,
     });
