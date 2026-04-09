@@ -1,7 +1,7 @@
 {
   "id": "murf",
   "name": "Murf",
-  "description": "High-quality text-to-speech via Murf (FALCON and GEN2 models)",
+  "description": "High-quality text-to-speech via Murf (FALCON model)",
   "contracts": {
     "speechProviders": ["murf"]
   },
@@ -20,7 +20,7 @@
     },
     "model": {
       "label": "Model",
-      "help": "FALCON (low latency) or GEN2 (studio quality)"
+      "help": "FALCON (low latency)"
     },
     "region": {
       "label": "API region",
@@ -41,8 +41,8 @@
       },
       "model": {
         "type": "string",
-        "enum": ["FALCON", "GEN2"],
-        "description": "TTS model: FALCON (fast) or GEN2 (high fidelity)"
+        "enum": ["FALCON"],
+        "description": "TTS model: FALCON (fast)"
       },
       "locale": {
         "type": "string",

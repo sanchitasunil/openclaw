@@ -4,7 +4,7 @@ import { buildMurfSpeechProvider } from "./speech-provider.js";
 export default definePluginEntry({
   id: "murf",
   name: "Murf Speech",
-  description: "Bundled Murf speech provider (FALCON and GEN2)",
+  description: "Bundled Murf speech provider (FALCON)",
   register(api) {
     api.registerSpeechProvider(buildMurfSpeechProvider());
   },

@@ -24,7 +24,7 @@ export const MURF_API_REGIONS = [
 
 const MURF_REGIONS = new Set<string>(MURF_API_REGIONS);
 
-const MURF_MODELS = new Set(["FALCON", "GEN2"]);
+const MURF_MODELS = new Set(["FALCON"]);
 
 const MURF_FORMATS = new Set(["MP3", "WAV", "OGG", "FLAC"]);
 const MURF_SAMPLE_RATES = new Set([8000, 16000, 24000, 44100, 48000]);
@@ -148,7 +148,7 @@ export async function murfTTS(params: MurfTtsParams): Promise<Buffer> {
 
   const modelNorm = model.trim().toUpperCase();
   if (!MURF_MODELS.has(modelNorm)) {
-    throw new Error(`Murf TTS: unsupported model "${model}" (expected FALCON or GEN2)`);
+    throw new Error(`Murf TTS: unsupported model "${model}" (expected FALCON)`);
   }
 
   const text = stripControlChars(params.text).trim();

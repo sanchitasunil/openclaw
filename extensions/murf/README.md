@@ -1,8 +1,8 @@
 # Murf Speech Provider for OpenClaw
 
 Bundled speech provider plugin that adds [Murf AI](https://murf.ai) text-to-speech
-to OpenClaw. Supports the **FALCON** (low-latency, ~130 ms) and **GEN2**
-(studio-quality) models with 150+ voices across 35 languages.
+to OpenClaw. Powered by the **FALCON** model (low-latency, ~130 ms) with
+150+ voices across 35 languages.
 
 ## Install
 
@@ -56,7 +56,7 @@ openclaw config set messages.tts.provider murf
       providers: {
         murf: {
           voiceId: "en-US-natalie",  // any Murf voice ID
-          model: "FALCON",           // "FALCON" or "GEN2"
+          model: "FALCON",           // only "FALCON" is supported
           locale: "en-US",           // BCP-47 locale
           style: "Conversation",     // speaking style
           rate: 0,                   // -50 to 50
@@ -82,7 +82,6 @@ openclaw gateway restart
 | Model   | Latency | Quality        | Default sample rate |
 |---------|---------|----------------|---------------------|
 | FALCON  | ~130 ms | Conversational | 24 000 Hz           |
-| GEN2    | Higher  | Studio         | 44 100 Hz           |
 
 ## Voices
 
@@ -120,7 +119,7 @@ When directive overrides are enabled, users can tweak Murf parameters
 inline:
 
 ```
-@tts voiceid=en-US-jackson model=GEN2 style=Newscast rate=10
+@tts voiceid=en-US-jackson style=Newscast rate=10
 ```
 
 Supported directive keys: `voiceid` / `murf_voice`, `model` / `murf_model`,
@@ -128,15 +127,16 @@ Supported directive keys: `voiceid` / `murf_voice`, `model` / `murf_model`,
 
 ## Audio formats
 
-| Format | MIME type    | Notes                                      |
-|--------|--------------|--------------------------------------------|
-| MP3    | audio/mpeg   | Default; smallest file size                |
-| WAV    | audio/wav    | Uncompressed; largest file                 |
-| OGG    | audio/ogg    | Used automatically for voice-note targets  |
-| FLAC   | audio/flac   | Lossless compression                       |
+| Format | MIME type    | Notes                                            |
+|--------|--------------|--------------------------------------------------|
+| MP3    | audio/mpeg   | Default; smallest file size; used for voice notes|
+| WAV    | audio/wav    | Uncompressed; largest file                       |
+| OGG    | audio/ogg    | Not supported by FALCON                          |
+| FLAC   | audio/flac   | Lossless compression                             |
 
-Voice-note targets (Telegram, WhatsApp) automatically switch to OGG so
-the audio plays as a native voice bubble.
+FALCON does not emit OGG, so voice-note targets (Telegram, WhatsApp)
+automatically use MP3 — both platforms accept MP3 as a native voice
+bubble.
 
 ## Troubleshooting
 
@@ -145,11 +145,11 @@ the audio plays as a native voice bubble.
 | `Murf API key missing` | Set `MURF_API_KEY` env var or add `apiKey` to provider config |
 | `Murf TTS API error (401)` | API key is invalid or expired — regenerate at murf.ai |
 | `Murf TTS API error (429)` | Rate limited — the provider retries automatically (3 attempts with exponential backoff). Reduce request volume or upgrade your Murf plan |
-| `unsupported model` | Use `FALCON` or `GEN2` (case-insensitive) |
+| `unsupported model` | Use `FALCON` (case-insensitive) |
 | `text exceeds 5000 character limit` | Split long text into smaller chunks |
 | `unsupported sampleRate` | Use one of: 8000, 16000, 24000, 44100, 48000 |
 | `received empty audio response` | The API returned no audio data. Verify your voice ID and locale are valid |
-| Voice notes not playable | Ensure format is OGG (automatic for `voice-note` target) |
+| Voice notes not playable | The provider already forces MP3 for `voice-note` targets — verify the receiving channel accepts MP3 voice notes |
 
 ## Testing
 

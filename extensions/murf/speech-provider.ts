@@ -17,7 +17,7 @@ const DEFAULT_MURF_FORMAT = "MP3";
 const DEFAULT_MURF_RATE = 0;
 const DEFAULT_MURF_PITCH = 0;
 
-const MURF_TTS_MODELS = ["FALCON", "GEN2"] as const;
+const MURF_TTS_MODELS = ["FALCON"] as const;
 const MURF_TTS_MODEL_SET = new Set<string>(MURF_TTS_MODELS);
 const MURF_VALID_FORMATS = new Set(["MP3", "WAV", "OGG", "FLAC"]);
 
@@ -49,9 +49,9 @@ function asNumber(value: unknown): number | undefined {
   return undefined;
 }
 
-/** Murf defaults: 24 kHz (Falcon) vs 44.1 kHz (Gen2) per API schema notes. */
-function defaultMurfSampleRateForModel(model: string): number {
-  return model === "GEN2" ? 44_100 : 24_000;
+/** Murf default sample rate: 24 kHz for FALCON. */
+function defaultMurfSampleRateForModel(_model: string): number {
+  return 24_000;
 }
 
 function normalizeMurfModelField(raw: unknown): string {
@@ -366,15 +366,13 @@ export function buildMurfSpeechProvider(): SpeechProviderPlugin {
         throw new Error("Murf API key missing");
       }
 
-      // Telegram/WhatsApp voice bubbles expect Opus/OGG; fall back to OGG
-      // so the audio is playable as a native voice note.
-      // FALCON does not support OGG — use MP3 which Telegram also accepts.
+      // FALCON does not support OGG — use MP3 for voice-note targets,
+      // which Telegram/WhatsApp also accept as native voice bubbles.
       const isVoiceNote = req.target === "voice-note";
       const requestedFormat = normalizeFormat(overrides.format) ?? config.format;
       const modelOverride = trimToUndefined(overrides.model);
       const effectiveModel = normalizeMurfModelField(modelOverride ?? config.model);
-      const voiceNoteFormat = effectiveModel === "FALCON" ? "MP3" : "OGG";
-      const format = isVoiceNote ? voiceNoteFormat : requestedFormat;
+      const format = isVoiceNote ? "MP3" : requestedFormat;
 
       const audioBuffer = await murfTTS({
         text: req.text,

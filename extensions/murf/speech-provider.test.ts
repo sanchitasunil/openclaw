@@ -38,7 +38,6 @@ describe("murf speech provider", () => {
     expect(provider.id).toBe("murf");
     expect(provider.label).toBe("Murf");
     expect(provider.models).toContain("FALCON");
-    expect(provider.models).toContain("GEN2");
     expect(typeof provider.isConfigured).toBe("function");
     expect(typeof provider.synthesize).toBe("function");
     expect(typeof provider.listVoices).toBe("function");
@@ -89,13 +88,13 @@ describe("murf speech provider", () => {
     const provider = buildMurfSpeechProvider();
     const resolved = provider.resolveConfig?.({
       cfg: EMPTY_CFG,
-      rawConfig: { providers: { murf: { voiceId: "Matthew", model: "gen2" } } },
+      rawConfig: { providers: { murf: { voiceId: "Matthew", model: "falcon" } } },
       timeoutMs: 10_000,
     });
     expect(resolved).toMatchObject({
       voiceId: "Matthew",
-      model: "GEN2",
-      sampleRate: 44_100,
+      model: "FALCON",
+      sampleRate: 24_000,
     });
   });
 
@@ -148,30 +147,6 @@ describe("murf speech provider", () => {
     expect(result.fileExtension).toBe(".mp3");
   });
 
-  it("synthesize requests OGG for GEN2 voice-note targets", async () => {
-    process.env.MURF_API_KEY = "test-key";
-    const fetchMock = vi.fn(() =>
-      Promise.resolve(new Response(new Uint8Array([1]), { status: 200 })),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    const provider = buildMurfSpeechProvider();
-    const result = await provider.synthesize({
-      text: "Hi",
-      cfg: EMPTY_CFG,
-      providerConfig: { format: "MP3", model: "GEN2" },
-      target: "voice-note",
-      timeoutMs: 10_000,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock access
-    const call = (fetchMock.mock.calls as any[])[0] as [string, RequestInit];
-    const body = JSON.parse(String(call[1]?.body));
-    expect(body.format).toBe("OGG");
-    expect(result.voiceCompatible).toBe(true);
-    expect(result.fileExtension).toBe(".ogg");
-  });
-
   it("synthesize returns correct format metadata for audio-file target", async () => {
     process.env.MURF_API_KEY = "test-key";
     vi.stubGlobal(
@@ -205,7 +180,7 @@ describe("murf speech provider", () => {
       text: "Hi",
       cfg: EMPTY_CFG,
       providerConfig: { voiceId: "en-US-natalie", model: "FALCON" },
-      providerOverrides: { voiceId: "en-US-jackson", model: "GEN2" },
+      providerOverrides: { voiceId: "en-US-jackson", model: "FALCON" },
       target: "audio-file",
       timeoutMs: 10_000,
     });
@@ -214,7 +189,7 @@ describe("murf speech provider", () => {
     const call = (fetchMock.mock.calls as any[])[0] as [string, RequestInit];
     const body = JSON.parse(String(call[1]?.body));
     expect(body.voiceId).toBe("en-US-jackson");
-    expect(body.model).toBe("GEN2");
+    expect(body.model).toBe("FALCON");
   });
 
   // --- listVoices ---
@@ -288,11 +263,11 @@ describe("murf speech provider", () => {
     const provider = buildMurfSpeechProvider();
     const result = provider.parseDirectiveToken!({
       key: "model",
-      value: "GEN2",
+      value: "FALCON",
       policy: ALLOW_ALL_POLICY,
     });
     expect(result.handled).toBe(true);
-    expect(result.overrides).toMatchObject({ model: "GEN2" });
+    expect(result.overrides).toMatchObject({ model: "FALCON" });
   });
 
   it("parseDirectiveToken handles rate with validation", () => {
@@ -413,13 +388,13 @@ describe("murf speech provider", () => {
     const provider = buildMurfSpeechProvider();
     const result = provider.resolveTalkConfig!({
       cfg: EMPTY_CFG,
-      baseTtsConfig: { murf: { voiceId: "en-US-natalie", model: "GEN2" } },
+      baseTtsConfig: { murf: { voiceId: "en-US-natalie", model: "FALCON" } },
       talkProviderConfig: {},
       timeoutMs: 10_000,
     });
     expect(result).toMatchObject({
       voiceId: "en-US-natalie",
-      model: "GEN2",
+      model: "FALCON",
     });
   });
 
@@ -431,7 +406,7 @@ describe("murf speech provider", () => {
       talkProviderConfig: {},
       params: {
         voiceId: "en-US-jackson",
-        model: "gen2",
+        model: "falcon",
         style: "Newscast",
         rate: 10,
         pitch: -5,
@@ -440,7 +415,7 @@ describe("murf speech provider", () => {
     });
     expect(result).toMatchObject({
       voiceId: "en-US-jackson",
-      model: "GEN2",
+      model: "FALCON",
       style: "Newscast",
       rate: 10,
       pitch: -5,

@@ -1,6 +1,6 @@
 ---
 name: murf-tts
-description: High-quality TTS via Murf (FALCON / GEN2, cloud streaming)
+description: High-quality TTS via Murf (FALCON, cloud streaming)
 metadata:
   {
     "openclaw":
@@ -14,7 +14,7 @@ metadata:
 
 # murf-tts
 
-Cloud text-to-speech using Murf (FALCON for low latency, GEN2 for studio-quality). Produces natural-sounding audio in multiple voices, styles, and locales.
+Cloud text-to-speech using Murf (FALCON for low latency). Produces natural-sounding audio in multiple voices, styles, and locales.
 
 ## Setup
 
@@ -73,14 +73,14 @@ The agent will use Murf for all voice output. If Murf is unavailable, OpenClaw a
 | Parameter  | Values                           | Default                                 |
 | ---------- | -------------------------------- | --------------------------------------- |
 | voiceId    | "en-US-natalie", "Matthew", etc. | en-US-natalie                           |
-| model      | "FALCON", "GEN2"                 | FALCON                                  |
+| model      | "FALCON"                         | FALCON                                  |
 | locale     | "en-US", "en-UK", "es-ES", etc.  | en-US                                   |
 | style      | "Conversation", "Newscast", etc. | Conversation                            |
 | rate       | -50 to 50                        | 0                                       |
 | pitch      | -50 to 50                        | 0                                       |
 | region     | Murf API region ids (see below)  | global                                  |
 | format     | "MP3", "WAV", "OGG", "FLAC"      | MP3                                     |
-| sampleRate | 8000, 16000, 24000, 44100, 48000 | 24000 (FALCON), 44100 (GEN2) if omitted |
+| sampleRate | 8000, 16000, 24000, 44100, 48000 | 24000 if omitted                        |
 
 ### Regions (`messages.tts` / `providers.murf.region`)
 
